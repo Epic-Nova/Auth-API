@@ -11,6 +11,13 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'service' => 'auth-api',
+    ]);
+});
+
 // Dynamic Versioning Gateway
 Route::prefix('{version}')->group(function () {
     Route::get('/', [APIVersionController::class, 'index']);
