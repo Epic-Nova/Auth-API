@@ -14,7 +14,7 @@ trait IssuedTokenTrait
         $payload = json_decode($tokenPayload, true) ?? [];
         $issuedToAuthenticatable = $this->resolveIssuedToAuthenticatable($payload['sub'] ?? []);
 
-        if (!$issuedToAuthenticatable) {
+        if (! $issuedToAuthenticatable) {
             Log::error('ConstructIssuedToken: Missing AuthenticatableIdentifier in token subjects.');
             if (method_exists($this, 'HandleError')) {
                 $this->HandleError('errors.com.epicnova.token.subject_missing');
@@ -30,7 +30,7 @@ trait IssuedTokenTrait
             ? Carbon::createFromTimestamp((int) $payload['exp'])
             : now()->addHour();
 
-        $issuedToken = new IssuedToken();
+        $issuedToken = new IssuedToken;
         $issuedToken->IssuedTokenJTI = $issuedTokenJti;
         $issuedToken->IssuedRefreshTokenJTI = $issuedRefreshTokenJti;
         $issuedToken->TokenPayload = $tokenPayload;
@@ -58,6 +58,10 @@ trait IssuedTokenTrait
 
             if (str_starts_with($subject, 'account_id:')) {
                 return substr($subject, strlen('account_id:'));
+            }
+
+            if (str_starts_with($subject, 'client_id:')) {
+                return substr($subject, strlen('client_id:'));
             }
         }
 

@@ -1,14 +1,15 @@
-﻿<?php
+<?php
 
 namespace App\Auth;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
 
 class NovaUserProvider implements UserProvider
 {
-
     protected HasherContract $hasher;
+
     protected $model;
 
     public function __construct(HasherContract $hasher, $model)
@@ -27,7 +28,7 @@ class NovaUserProvider implements UserProvider
         // TODO: Implement retrieveByToken() method.
     }
 
-    public function updateRememberToken(\Illuminate\Contracts\Auth\Authenticatable $user, #[\SensitiveParameter] $token)
+    public function updateRememberToken(Authenticatable $user, #[\SensitiveParameter] $token)
     {
         // TODO: Implement updateRememberToken() method.
     }
@@ -37,12 +38,12 @@ class NovaUserProvider implements UserProvider
         // TODO: Implement retrieveByCredentials() method.
     }
 
-    public function validateCredentials(\Illuminate\Contracts\Auth\Authenticatable $user, #[\SensitiveParameter] array $credentials)
+    public function validateCredentials(Authenticatable $user, #[\SensitiveParameter] array $credentials)
     {
         // TODO: Implement validateCredentials() method.
     }
 
-    public function rehashPasswordIfRequired(\Illuminate\Contracts\Auth\Authenticatable $user, #[\SensitiveParameter] array $credentials, bool $force = false)
+    public function rehashPasswordIfRequired(Authenticatable $user, #[\SensitiveParameter] array $credentials, bool $force = false)
     {
         // TODO: Implement rehashPasswordIfRequired() method.
     }

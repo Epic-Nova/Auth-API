@@ -1,8 +1,9 @@
-﻿<?php
+<?php
 
 namespace App\Auth;
 
 use Illuminate\Auth\GuardHelpers;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
@@ -15,11 +16,13 @@ class NovaSessionGuard implements Guard
     use GuardHelpers;
 
     protected Request $request;
+
     public function __construct(UserProvider $provider, Request $request)
     {
         $this->provider = $provider;
         $this->request = $request;
     }
+
     public function check()
     {
         // TODO: Implement check() method.
@@ -50,7 +53,7 @@ class NovaSessionGuard implements Guard
         // TODO: Implement hasUser() method.
     }
 
-    public function setUser(\Illuminate\Contracts\Auth\Authenticatable $user)
+    public function setUser(Authenticatable $user)
     {
         // TODO: Implement setUser() method.
     }

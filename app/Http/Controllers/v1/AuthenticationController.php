@@ -5,14 +5,15 @@ namespace App\Http\Controllers\v1;
 use App\Http\Controllers\CapabilityDiscoveryController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\v1\AuthenticationLoginRequest;
+use App\Models\AuthenticatableUpdateLog;
 use App\Models\Authentication\Authenticatable;
 use App\Models\Authentication\AuthenticationProvider;
-use App\Models\AuthenticatableUpdateLog;
-use App\Models\IssuedToken;
+use App\Models\Authentication\IssuedToken;
 use App\Traits\IssuedTokenTrait;
 use App\Traits\LoginTokenTrait;
-use Illuminate\Http\Request;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -33,14 +34,14 @@ class AuthenticationController extends Controller
         return response()->json([
             'feature' => 'auth',
             'version' => 'v1',
-            'capabilities' => $myCapabilities
+            'capabilities' => $myCapabilities,
         ]);
     }
 
     /**
-     * @param AuthLoginRequest $request
-     * @return JsonResponse
-     * @throws \Illuminate\Http\Client\ConnectionException
+     * @param  AuthLoginRequest  $request
+     *
+     * @throws ConnectionException
      *
      * @todo: Draw from AuthenticationProvidersParameters the parameters required, if this is a latent provider we need to flag it in the db as for mfa the user needs his request saved
      * (Multi Request Providers that require more that one request. They return a state id to reidentify within the process)
@@ -56,12 +57,12 @@ class AuthenticationController extends Controller
                 'roles.scopes',
                 'permissions',
                 'permissionCollections',
-                'roles.permissionCollections'
+                'roles.permissionCollections',
             ])
             ->where('AuthenticatableIdentifier', $data['authenticatable_identifier'])
             ->first();
 
-        if (!$authenticatable) {
+        if (! $authenticatable) {
             return response()->json([
                 'error' => 'Authenticatable not found.',
             ], 404);
@@ -72,13 +73,13 @@ class AuthenticationController extends Controller
             ->orWhere('ProviderFriendlyIdentifier', $data['provider_identifier'])
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             return response()->json([
                 'error' => 'Authentication provider not found.',
             ], 404);
         }
 
-        if (!$provider->bCanUserLoginWithProvider) {
+        if (! $provider->bCanUserLoginWithProvider) {
             return response()->json([
                 'error' => 'Authentication provider does not support user login.',
             ], 403);
@@ -100,7 +101,7 @@ class AuthenticationController extends Controller
             ->where('AuthenticationProviderIdentifier', $provider->AuthenticationProviderIdentifier)
             ->first();
 
-        if (!$attachedProvider) {
+        if (! $attachedProvider) {
             return response()->json([
                 'error' => 'Authentication provider not attached to authenticatable.',
             ], 403);

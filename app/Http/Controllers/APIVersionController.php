@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use ReflectionMethod;
 
@@ -16,31 +16,31 @@ class APIVersionController extends Controller
 
         return response()->json([
             'api_version' => $version,
-            'engine'      => 'Celestia Nova Discovery Link',
-            'features'    => array_keys($features),
+            'engine' => 'Celestia Nova Discovery Link',
+            'features' => array_keys($features),
         ]);
     }
 
-    public function handleDynamicMapping(Request $request, $version, $any)
+    public function handleDynamicMapping(Request $request, string $version, string $feature, ?string $action = null)
     {
         $featuresMap = $this->getFeaturesMapFor($version);
 
-        $segments = explode('/', trim($any, '/'));
-        $rootSegment = $segments[0] ?? null;
-        $subSegment  = $segments[1] ?? null;
+        $rootSegment = $feature;
+        $subSegment = $action;
+        $any = $feature.($action ? '/'.$action : '');
 
-        if (!$rootSegment || !array_key_exists($rootSegment, $featuresMap)) {
+        if (! $rootSegment || ! array_key_exists($rootSegment, $featuresMap)) {
             return response()->json([
-                'error' => "Feature gateway endpoint [{$rootSegment}] is not supported under version {$version}."
+                'error' => "Feature gateway endpoint [{$rootSegment}] is not supported under version {$version}.",
             ], 404);
         }
 
         $targetControllerClass = $featuresMap[$rootSegment];
         $targetMethod = $this->resolveTargetMethod($request, $subSegment);
 
-        if (!method_exists($targetControllerClass, $targetMethod)) {
+        if (! method_exists($targetControllerClass, $targetMethod)) {
             return response()->json([
-                'error' => "Action [{$targetMethod}] not found on handler for /{$version}/{$any}"
+                'error' => "Action [{$targetMethod}] not found on handler for /{$version}/{$any}",
             ], 404);
         }
 
@@ -59,16 +59,16 @@ class APIVersionController extends Controller
 
     private function resolveTargetMethod(Request $request, ?string $subSegment): string
     {
-        if ($subSegment && !is_numeric($subSegment) && !$this->isIdentifier($subSegment)) {
+        if ($subSegment && ! is_numeric($subSegment) && ! $this->isIdentifier($subSegment)) {
             return Str::camel($subSegment);
         }
 
         return match ($request->method()) {
-            'GET'    => $subSegment ? 'show' : 'index',
-            'POST'   => 'store',
+            'GET' => $subSegment ? 'show' : 'index',
+            'POST' => 'store',
             'PUT', 'PATCH' => 'update',
             'DELETE' => 'destroy',
-            default  => 'index'
+            default => 'index'
         };
     }
 
@@ -83,7 +83,7 @@ class APIVersionController extends Controller
         return CapabilityDiscoveryController::getFeaturesMapForVersion($version);
     }
 
-    private function authorizeTargetMethod(Request $request, string $controllerClass, string $method): ?\Illuminate\Http\JsonResponse
+    private function authorizeTargetMethod(Request $request, string $controllerClass, string $method): ?JsonResponse
     {
         $reflectionMethod = new ReflectionMethod($controllerClass, $method);
         $docComment = $reflectionMethod->getDocComment() ?: '';

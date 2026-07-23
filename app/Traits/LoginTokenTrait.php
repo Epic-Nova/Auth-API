@@ -18,6 +18,7 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
+use Symfony\Component\Clock\NativeClock;
 
 trait LoginTokenTrait
 {
@@ -32,9 +33,10 @@ trait LoginTokenTrait
         array $subjects,
         int $lifetime,
         int $nbfOffset = 0,
-        ?string $currentProfileId = null
-    ): array
-    {
+        ?string $currentProfileId = null,
+        ?string $oauthClientId = null,
+        ?string $grantType = null,
+    ): array {
         $jti = uniqid('jti_', true);
         $issuer = config('auth.jwt.issuer', 'auth.epicnova.net');
         $kid = config('auth.jwk.kid');
@@ -42,24 +44,27 @@ trait LoginTokenTrait
         Log::debug("Generating JWT pair. JTI: {$jti} for Issuer: {$issuer}");
 
         // Build Payload
-        $payload = json_encode([
-            'iat'            => time(),
-            'nbf'            => time() + $nbfOffset,
-            'exp'            => time() + $lifetime,
-            'iss'            => $issuer,
-            'sub'            => $subjects,
-            'aud'            => $audiences,
-            'Scopes'         => $scopes,
-            'Permissions'    => $permissions,
-            'Roles'          => $roles,
+        $payload = json_encode(array_filter([
+            'iat' => time(),
+            'nbf' => time() + $nbfOffset,
+            'exp' => time() + $lifetime,
+            'iss' => $issuer,
+            'sub' => $subjects,
+            'aud' => $audiences,
+            'Scopes' => $scopes,
+            'Permissions' => $permissions,
+            'Roles' => $roles,
             'CurrentProfile' => $currentProfileId ?? Auth::user()?->current_profile_id ?? 'guest',
-            'jti'            => $jti,
-        ]);
+            'jti' => $jti,
+            'client_id' => $oauthClientId,
+            'scope' => implode(' ', $scopes),
+            'grant_type' => $grantType,
+        ], static fn (mixed $value): bool => $value !== null));
 
         // Sign Access Token
-        $algorithmManager = new AlgorithmManager([new PS512()]);
+        $algorithmManager = new AlgorithmManager([new PS512]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
-        $serializer = new CompactSerializer();
+        $serializer = new CompactSerializer;
 
         $jws = $jwsBuilder->create()
             ->withPayload($payload)
@@ -77,9 +82,9 @@ trait LoginTokenTrait
         }
 
         return [
-            'access_token'      => $accessToken,
-            'access_token_jti'  => $jti,
-            'refresh_token'     => $refreshTokenData['token'],
+            'access_token' => $accessToken,
+            'access_token_jti' => $jti,
+            'refresh_token' => $refreshTokenData['token'],
             'refresh_token_jti' => $refreshTokenData['jti'],
         ];
     }
@@ -90,14 +95,14 @@ trait LoginTokenTrait
     private function generateRefreshJwt(string $parentJti, string $issuer, string $kid): array
     {
         $refreshJti = uniqid('rt_', true);
-        $algorithmManager = new AlgorithmManager([new PS512()]);
+        $algorithmManager = new AlgorithmManager([new PS512]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
-        $serializer = new CompactSerializer();
+        $serializer = new CompactSerializer;
 
         $payload = json_encode([
-            'iat'              => time(),
-            'iss'              => $issuer,
-            'jti'              => $refreshJti,
+            'iat' => time(),
+            'iss' => $issuer,
+            'jti' => $refreshJti,
             'OriginalTokenJTI' => $parentJti,
         ]);
 
@@ -108,20 +113,21 @@ trait LoginTokenTrait
 
         return [
             'token' => $serializer->serialize($jws),
-            'jti'   => $refreshJti
+            'jti' => $refreshJti,
         ];
     }
 
     /**
      * Universal parser & validator for tokens using web-token framework managers
+     *
      * @throws Exception
      */
     public function verifyAndDecodeToken(string $token, array $requiredClaims = []): array
     {
-        $algorithmManager = new AlgorithmManager([new PS512()]);
+        $algorithmManager = new AlgorithmManager([new PS512]);
         $jwsVerifier = new JWSVerifier($algorithmManager);
-        $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
-        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['PS512'])], [new JWSTokenSupport()]);
+        $serializerManager = new JWSSerializerManager([new CompactSerializer]);
+        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['PS512'])], [new JWSTokenSupport]);
 
         try {
             $jws = $serializerManager->unserialize($token);
@@ -130,10 +136,12 @@ trait LoginTokenTrait
             $payload = json_decode($jws->getPayload(), true);
 
             // Execute fundamental security checks
+            $clock = new NativeClock('UTC');
+            $leeway = (int) config('auth.jwt.leeway', 0);
             $claimChecker = new ClaimCheckerManager([
-                new Checker\ExpirationTimeChecker(config('auth.jwt.leeway', 0)),
-                new Checker\IssuedAtChecker(config('auth.jwt.leeway', 0)),
-                new Checker\NotBeforeChecker(config('auth.jwt.leeway', 0)),
+                new Checker\ExpirationTimeChecker($clock, $leeway),
+                new Checker\IssuedAtChecker($clock, $leeway),
+                new Checker\NotBeforeChecker($clock, $leeway),
                 new Checker\IssuerChecker([config('auth.jwt.issuer', 'auth.epicnova.net')]),
             ]);
 
@@ -146,7 +154,7 @@ trait LoginTokenTrait
             return json_decode($jwsVerified->getPayload(), true);
 
         } catch (Exception $e) {
-            Log::error("Token verification failure: " . $e->getMessage());
+            Log::error('Token verification failure: '.$e->getMessage());
             if (method_exists($this, 'HandleError')) {
                 $this->HandleError('errors.com.epicnova.token.invalid', [], ['msg' => $e->getMessage()]);
             }

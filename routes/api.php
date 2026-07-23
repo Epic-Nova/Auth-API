@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Http\Controllers\APIVersionController;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +22,7 @@ Route::get('/health', function () {
 Route::prefix('{version}')->group(function () {
     Route::get('/', [APIVersionController::class, 'index']);
 
-    Route::any('{any}', [APIVersionController::class, 'handleDynamicMapping'])
-        ->where('any', '.*');
+    Route::any('{feature}/{action?}', [APIVersionController::class, 'handleDynamicMapping'])
+        ->where('action', '.*');
 
 });

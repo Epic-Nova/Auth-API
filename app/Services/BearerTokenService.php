@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\IssuedToken;
+use App\Models\Authentication\IssuedToken;
 use Exception;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Signature\Algorithm\PS512;
+use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
-use Jose\Component\Signature\JWSTokenSupport;
 use RuntimeException;
 
 class BearerTokenService
@@ -23,9 +23,9 @@ class BearerTokenService
             throw new RuntimeException('Bearer token missing.');
         }
 
-        $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
-        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['PS512'])], [new JWSTokenSupport()]);
-        $verifier = new JWSVerifier(new AlgorithmManager([new PS512()]));
+        $serializerManager = new JWSSerializerManager([new CompactSerializer]);
+        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['PS512'])], [new JWSTokenSupport]);
+        $verifier = new JWSVerifier(new AlgorithmManager([new PS512]));
         $jwk = new JWK(config('auth.jwk'));
 
         try {

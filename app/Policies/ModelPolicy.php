@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Policies;
 
@@ -11,7 +11,7 @@ class ModelPolicy
 
     public function action(User $user): bool
     {
-        //@TODO
+        // @TODO
         return true;
     }
 }

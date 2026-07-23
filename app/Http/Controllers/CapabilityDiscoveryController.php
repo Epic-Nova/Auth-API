@@ -2,6 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\v1\AccountController;
+use App\Http\Controllers\v1\ApprovalEntityController;
+use App\Http\Controllers\v1\AttachableDataController;
+use App\Http\Controllers\v1\AuthenticationController;
+use App\Http\Controllers\v1\AuthenticationProviderController;
+use App\Http\Controllers\v1\AuthorisationController;
+use App\Http\Controllers\v1\BanController;
+use App\Http\Controllers\v1\OAuthController;
+use App\Http\Controllers\v1\ProfileController;
+use App\Http\Controllers\v1\ShardController;
+
 /**
  * @todo Provide GraphQL interaction
  */
@@ -22,7 +33,7 @@ class CapabilityDiscoveryController extends Controller
     {
         $capabilities = new self()->getRawStaticCapabilities();
 
-        if (!isset($capabilities[$version])) {
+        if (! isset($capabilities[$version])) {
             return [];
         }
 
@@ -44,8 +55,11 @@ class CapabilityDiscoveryController extends Controller
 
     /**
      * The central static registry placeholder that Celestia Nova will dynamically inject into later.
+     *
      * @TODO: Deny if HTTP method mismatches (using upcoming middleware that uses the ErrorHandlerTrait)
+     *
      * @TODO: Add paging
+     *
      * @TODO: Middleware for token validation stuff
      */
     private function getRawStaticCapabilities(): array
@@ -53,12 +67,12 @@ class CapabilityDiscoveryController extends Controller
         return [
             'v1' => [
                 'authentication' => [
-                    'handler' => \App\Http\Controllers\v1\AuthenticationController::class,
+                    'handler' => AuthenticationController::class,
                     'functions' => [
                         // Authentication
-                        'index' => ['description' => 'Lists the types of resources that can use Authentication (No-Auth)'], //Applications(Applications.Bot, Application.App), Account, Impersonated-Account, Profile
+                        'index' => ['description' => 'Lists the types of resources that can use Authentication (No-Auth)'], // Applications(Applications.Bot, Application.App), Account, Impersonated-Account, Profile
 
-                        'login'  => ['description' => 'Issue structural session bearer token credentials', 'method' => 'POST'],
+                        'login' => ['description' => 'Issue structural session bearer token credentials', 'method' => 'POST'],
                         'logout' => ['description' => 'Revoke structural session bearer token credentials', 'method' => 'POST'],
                         'refresh' => ['description' => 'Refresh structural session bearer token credentials', 'method' => 'POST'],
                         'validate' => ['description' => 'Validate structural session bearer token credentials', 'method' => 'POST'],
@@ -84,31 +98,39 @@ class CapabilityDiscoveryController extends Controller
                         // IssuedTokens
                         'lookup-issued-tokens' => ['description' => 'Retrieve a target authenticatable identity issued tokens (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'revoke-issued-token' => ['description' => 'Revoke an issued token of the authenticatable identity', 'method' => 'DELETE'],
-                        'revoke-all-issued-tokens' => ['description' => 'Revoke all issued tokens of the authenticatable identity', 'method' => 'DELETE']
-                    ]
+                        'revoke-all-issued-tokens' => ['description' => 'Revoke all issued tokens of the authenticatable identity', 'method' => 'DELETE'],
+                    ],
+                ],
+                'oauth' => [
+                    'handler' => OAuthController::class,
+                    'functions' => [
+                        'index' => ['description' => 'Lists OAuth-compatible application authentication capabilities (No-Auth)', 'method' => 'GET'],
+                        'token' => ['description' => 'Issue a custom PS512 bearer token for a registered OAuth application using client credentials', 'method' => 'POST'],
+                        'introspect' => ['description' => 'Inspect a token for a registered OAuth application using client authentication', 'method' => 'POST'],
+                    ],
                 ],
                 'accounts' => [
-                    'handler' => \App\Http\Controllers\v1\AccountController::class,
+                    'handler' => AccountController::class,
                     'functions' => [
                         // Account
-                        'index'  => ['description' => 'Retrieve all accounts bound to authenticatable context', 'method' => 'GET'],
+                        'index' => ['description' => 'Retrieve all accounts bound to authenticatable context', 'method' => 'GET'],
 
                         'lookup' => ['description' => 'Locate a target account identity (Minimal)', 'method' => 'GET'],
-                        'show'   => ['description' => 'Fetch isolated account entity attributes (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
+                        'show' => ['description' => 'Fetch isolated account entity attributes (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'create' => ['description' => 'Create a target account identity (Requires Authenticatable-Handle)', 'method' => 'POST'],
                         'update' => ['description' => 'Update attributes of an account entry', 'method' => 'PUT'],
                         'delete' => ['description' => 'Delete an account entry', 'method' => 'DELETE'],
 
-                        //AccountNotes
+                        // AccountNotes
                         'lookup-note' => ['description' => 'Locate a target account note identity (Minimal)', 'method' => 'GET'],
                         'list-notes' => ['description' => 'Fetch isolated account note entity attributes (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'create-note' => ['description' => 'Create a target account note identity', 'method' => 'POST'],
                         'update-note' => ['description' => 'Update attributes of an account note entry', 'method' => 'PUT'],
-                        'delete-note' => ['description' => 'Delete an account note entry', 'method' => 'DELETE']
-                    ]
+                        'delete-note' => ['description' => 'Delete an account note entry', 'method' => 'DELETE'],
+                    ],
                 ],
                 'authentication-providers' => [
-                    'handler' => \App\Http\Controllers\v1\AuthenticationProviderController::class,
+                    'handler' => AuthenticationProviderController::class,
                     'functions' => [
                         // AuthenticationProvider & AuthenticationProviderParameters
                         'index' => ['description' => 'Retrieve all authentication providers in the system (No-Auth)', 'method' => 'GET'],
@@ -120,7 +142,6 @@ class CapabilityDiscoveryController extends Controller
                         'update' => ['description' => 'Update attributes of an authentication provider entry', 'method' => 'PUT'],
                         'delete' => ['description' => 'Delete an authentication provider entry', 'method' => 'DELETE'],
 
-
                         // AttachedAuthenticationProviders
                         'index-attached' => ['description' => 'Retrieve all authentication providers attached to the authenticatable context (No-Auth)', 'method' => 'GET'],
                         'attach' => ['description' => 'Attach an authentication provider to the authenticatable context', 'method' => 'POST'],
@@ -130,11 +151,11 @@ class CapabilityDiscoveryController extends Controller
                         // AttachedAuthenticationProviderScriptsBlacklist
                         'index-blacklist' => ['description' => 'Retrieve all blacklisted scripts for attached authentication providers (No-Auth)', 'method' => 'GET'],
                         'blacklist' => ['description' => 'Blacklist a script for attached authentication providers', 'method' => 'POST'],
-                        'unblacklist' => ['description' => 'Remove a script from the blacklist for attached authentication providers', 'method' => 'DELETE']
-                    ]
+                        'unblacklist' => ['description' => 'Remove a script from the blacklist for attached authentication providers', 'method' => 'DELETE'],
+                    ],
                 ],
                 'approval-entities' => [
-                    'handler' => \App\Http\Controllers\v1\ApprovalEntityController::class,
+                    'handler' => ApprovalEntityController::class,
                     'functions' => [
                         // ApprovalEntity & ApprovalEntityParameters
                         'index' => ['description' => 'Retrieve all approval entities in the system (No-Auth)', 'method' => 'GET'],
@@ -144,15 +165,15 @@ class CapabilityDiscoveryController extends Controller
                         'update' => ['description' => 'Update attributes of an approval entity entry', 'method' => 'PUT'],
                         'delete' => ['description' => 'Delete an approval entity entry', 'method' => 'DELETE'],
 
-                        //ApprovalEntityData
+                        // ApprovalEntityData
                         'list-data' => ['description' => 'Fetch isolated approval entity data attributes on an Authenticatable (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'create-data' => ['description' => 'Provision a new approval entity data entry on an Authenticatable ', 'method' => 'POST'],
                         'update-data' => ['description' => 'Update attributes of an approval entity data entry on an Authenticatable ', 'method' => 'PUT'],
-                        'delete-data' => ['description' => 'Delete an approval entity data entry on an Authenticatable ', 'method' => 'DELETE']
-                    ]
+                        'delete-data' => ['description' => 'Delete an approval entity data entry on an Authenticatable ', 'method' => 'DELETE'],
+                    ],
                 ],
                 'attachable-data' => [
-                    'handler' => \App\Http\Controllers\v1\AttachableDataController::class,
+                    'handler' => AttachableDataController::class,
                     'functions' => [
                         // AttachableData & AttachableDataStates
                         'index' => ['description' => 'Retrieve all possible to attach data types with their states (No-Auth)', 'method' => 'GET'],
@@ -171,10 +192,13 @@ class CapabilityDiscoveryController extends Controller
                         'attach-temporary' => ['description' => 'Temporarily attach a data entry to an resource identity', 'method' => 'POST'],
                         'update-temporary' => ['description' => 'Update a temporarily attached data entry attached to an resource identity', 'method' => 'PUT'],
                         'detach-temporary' => ['description' => 'Detach a temporarily attached data entry from an resource identity', 'method' => 'DELETE'],
-                    ]
+                        'create-data' => ['description' => 'Compatibility alias for attaching data to a resource identity', 'method' => 'POST'],
+                        'update-data' => ['description' => 'Compatibility alias for updating temporarily attached data', 'method' => 'PUT'],
+                        'delete-data' => ['description' => 'Compatibility alias for detaching data from a resource identity', 'method' => 'DELETE'],
+                    ],
                 ],
                 'profiles' => [
-                    'handler' => \App\Http\Controllers\v1\ProfileController::class,
+                    'handler' => ProfileController::class,
                     'functions' => [
                         // Profiles
                         'index' => ['description' => 'Retrieve all profiles bound to account context (No-Auth)', 'method' => 'GET'],
@@ -193,10 +217,10 @@ class CapabilityDiscoveryController extends Controller
                         'lookup-rejected' => ['description' => 'Retrieve all rejected profile identifier reservation requests (Auth or No-Auth)', 'method' => 'GET'],
                         'reject' => ['description' => 'Reject a profile identifier reservation request', 'method' => 'POST'],
                         'unreject' => ['description' => 'Unreject a profile identifier reservation request', 'method' => 'DELETE'],
-                    ]
+                    ],
                 ],
                 'authorisation' => [
-                    'handler' => \App\Http\Controllers\v1\AuthorisationController::class,
+                    'handler' => AuthorisationController::class,
                     'functions' => [
                         // Role & RoleIgnoredErrors & RequiredRoleForParameter
                         'index' => ['description' => 'Retrieve all roles in the system (No-Auth)', 'method' => 'GET'],
@@ -222,9 +246,10 @@ class CapabilityDiscoveryController extends Controller
                         'update-permission' => ['description' => 'Update attributes of a permission entry', 'method' => 'PUT'],
                         'delete-permission' => ['description' => 'Delete a permission entry', 'method' => 'DELETE'],
 
+                    ],
                 ],
                 'shards' => [
-                    'handler' => \App\Http\Controllers\v1\ShardController::class,
+                    'handler' => ShardController::class,
                     'functions' => [
                         'index' => ['description' => 'Retrieve all shards in the system (No-Auth)', 'method' => 'GET'],
 
@@ -232,11 +257,11 @@ class CapabilityDiscoveryController extends Controller
                         'list' => ['description' => 'Fetch isolated shard entity attributes (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'create' => ['description' => 'Provision a new shard entry', 'method' => 'POST'],
                         'update' => ['description' => 'Update attributes of a shard entry', 'method' => 'PUT'],
-                        'delete' => ['description' => 'Delete a shard entry', 'method' => 'DELETE']
-                    ]
+                        'delete' => ['description' => 'Delete a shard entry', 'method' => 'DELETE'],
+                    ],
                 ],
                 'bans' => [
-                    'handler' => \App\Http\Controllers\v1\BanController::class,
+                    'handler' => BanController::class,
                     'functions' => [
                         // BannedAuthenticatable (Ban & BannedIn)
                         'index' => ['description' => 'Retrieve all bans bound to authenticatable context (No-Auth)', 'method' => 'GET'],
@@ -263,10 +288,10 @@ class CapabilityDiscoveryController extends Controller
                         'list-evidence' => ['description' => 'Fetch isolated ban evidence entity attributes (Default: All, Scoped: Only Requested Parameters)', 'method' => 'GET'],
                         'create-evidence' => ['description' => 'Provision a new ban evidence entry', 'method' => 'POST'],
                         'update-evidence' => ['description' => 'Update attributes of a ban evidence entry', 'method' => 'PUT'],
-                        'delete-evidence' => ['description' => 'Delete a ban evidence entry', 'method' => 'DELETE']
-                    ]
-                ]]
-            ]
+                        'delete-evidence' => ['description' => 'Delete a ban evidence entry', 'method' => 'DELETE'],
+                    ],
+                ],
+            ],
         ];
     }
 }
