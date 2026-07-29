@@ -113,45 +113,51 @@ class AuthenticationController extends Controller
             ], 403);
         }
 
-        $providerBaseUrl = rtrim((string) config('services.authentication_providers.base_url'), '/');
-        if ($providerBaseUrl === '') {
-            return response()->json([
-                'error' => 'Authentication provider service is not configured.',
-            ], 500);
-        }
+        $useLocalBypass = (bool) ($data['login_bypass'] ?? false);
+        if ($useLocalBypass) {
+            if (! config('keyforge.local_login_bypass') ||
+                $provider->ProviderFriendlyIdentifier !== 'com.epicnova.authentication_provider.local-bypass') {
+                return response()->json([
+                    'error' => 'Local login bypass is not enabled for this provider.',
+                ], 403);
+            }
+        } else {
+            $providerBaseUrl = rtrim((string) config('services.authentication_providers.base_url'), '/');
+            if ($providerBaseUrl === '') {
+                return response()->json([
+                    'error' => 'Authentication provider service is not configured.',
+                ], 500);
+            }
 
-        $providerInput = $data['login_bypass'] ?? false
-            ? 'login_bypass'
-            : $data['input'];
+            $providerResponse = Http::timeout((int) config('services.authentication_providers.timeout', 5))
+                ->acceptJson()
+                ->post($providerBaseUrl.'/api/auth/login', [
+                    'authenticatable_identifier' => $authenticatable->AuthenticatableIdentifier,
+                    'provider_identifier' => $provider->ProviderFriendlyIdentifier,
+                    'provider_data' => $attachedProvider->ProviderData,
+                    'input' => $data['input'],
+                    'login_bypass' => false,
+                    'parameters' => $data['parameters'] ?? [],
+                ]);
 
-        $providerResponse = Http::timeout((int) config('services.authentication_providers.timeout', 5))
-            ->acceptJson()
-            ->post($providerBaseUrl.'/api/auth/login', [
-                'authenticatable_identifier' => $authenticatable->AuthenticatableIdentifier,
-                'provider_identifier' => $provider->ProviderFriendlyIdentifier,
-                'provider_data' => $attachedProvider->ProviderData,
-                'input' => $providerInput,
-                'login_bypass' => $data['login_bypass'] ?? false,
-                'parameters' => $data['parameters'] ?? [],
-            ]);
+            if (! $providerResponse->ok()) {
+                Log::warning('Auth provider request failed.', [
+                    'status' => $providerResponse->status(),
+                    'provider' => $provider->ProviderFriendlyIdentifier,
+                ]);
 
-        if (! $providerResponse->ok()) {
-            Log::warning('Auth provider request failed.', [
-                'status' => $providerResponse->status(),
-                'provider' => $provider->ProviderFriendlyIdentifier,
-            ]);
+                return response()->json([
+                    'error' => 'Authentication provider unavailable.',
+                    'status' => $providerResponse->status(),
+                    'provider' => $provider->ProviderFriendlyIdentifier,
+                ], 502);
+            }
 
-            return response()->json([
-                'error' => 'Authentication provider unavailable.',
-                'status' => $providerResponse->status(),
-                'provider' => $provider->ProviderFriendlyIdentifier,
-            ], 502);
-        }
-
-        if (! $providerResponse->json('ok', false)) {
-            return response()->json([
-                'error' => 'Invalid credentials.',
-            ], 401);
+            if (! $providerResponse->json('ok', false)) {
+                return response()->json([
+                    'error' => 'Invalid credentials.',
+                ], 401);
+            }
         }
 
         $roles = $authenticatable->roles;

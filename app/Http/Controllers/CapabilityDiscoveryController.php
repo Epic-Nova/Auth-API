@@ -12,6 +12,7 @@ use App\Http\Controllers\v1\BanController;
 use App\Http\Controllers\v1\OAuthController;
 use App\Http\Controllers\v1\ProfileController;
 use App\Http\Controllers\v1\ShardController;
+use App\Http\Controllers\v1\CelestiaInstanceController;
 
 /**
  * @todo Provide GraphQL interaction
@@ -107,6 +108,19 @@ class CapabilityDiscoveryController extends Controller
                         'index' => ['description' => 'Lists OAuth-compatible application authentication capabilities (No-Auth)', 'method' => 'GET'],
                         'token' => ['description' => 'Issue a custom PS512 bearer token for a registered OAuth application using client credentials', 'method' => 'POST'],
                         'introspect' => ['description' => 'Inspect a token for a registered OAuth application using client authentication', 'method' => 'POST'],
+                        'provision-application' => ['description' => 'KeyForge-only, idempotent confidential OAuth application provisioning', 'method' => 'POST'],
+                        'device-authorize' => ['description' => 'Create a Nova ID device pairing and return a user verification link for a registered OAuth application', 'method' => 'POST'],
+                        'device-approve' => ['description' => 'Approve a pending Nova ID device pairing using an authenticated user bearer token', 'method' => 'POST'],
+                        'device-token' => ['description' => 'Poll a one-time Nova ID device pairing code for a scoped bearer token', 'method' => 'POST'],
+                    ],
+                ],
+                'celestia-instances' => [
+                    'handler' => CelestiaInstanceController::class,
+                    'functions' => [
+                        'index' => ['description' => 'List active, OAuth-authenticated Celestia mesh instances.', 'method' => 'GET'],
+                        'heartbeat' => ['description' => 'Publish an expiring authenticated Celestia instance heartbeat.', 'method' => 'POST'],
+                        'election' => ['description' => 'Return active membership and deterministic primary-election policy.', 'method' => 'GET'],
+                        'update-manifest' => ['description' => 'Return the static signed-update manifest for Celestia daemon channels.', 'method' => 'GET'],
                     ],
                 ],
                 'accounts' => [

@@ -49,6 +49,7 @@ class RegisterOAuthClientCommand extends Command
 
             OAuthClient::query()->create([
                 'OAuthClientIdentifier' => $clientId,
+                'ApplicationIdentity' => null,
                 'ClientName' => $name,
                 'ClientSecretHash' => Hash::make($clientSecret),
                 'AllowedScopes' => $scopes,

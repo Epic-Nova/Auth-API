@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Authentication\Account;
 use App\Models\User;
 
 return [
@@ -38,10 +39,10 @@ return [
     */
 
     'guards' => [
-        "api" => [
+        'api' => [
             'driver' => 'jwt',
-            'provider' => 'NovaUserProvider'
-        ]
+            'provider' => 'NovaUserProvider',
+        ],
     ],
 
     /*
@@ -69,7 +70,7 @@ return [
 
         'NovaProvider' => [
             'driver' => 'NovaProvider',
-            'model' => \App\Models\Authentication\Account::class,
+            'model' => Account::class,
         ],
         // 'users' => [
         //     'driver' => 'database',
@@ -125,25 +126,25 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
-    "jwt" => [
-        "issuer" => "auth.epicnova.net",
-        "leeway" => 0,
-        "access_ttl" => env('AUTH_JWT_ACCESS_TTL', 3600),
+    'jwt' => [
+        'issuer' => 'auth.epicnova.net',
+        'leeway' => 0,
+        'access_ttl' => env('AUTH_JWT_ACCESS_TTL', 3600),
     ],
 
-    "jwk" => [
-        "kty" => "RSA",
-        "alg" => "PS512",
-        "use" => "sig",
-        "kid" => "e47836586219c849",
-        "n" => "3_J3g6ujnoCbWQcLG8zBWX2igY7ZG0NfoJ1WFNmSYtZY-lK1PDdf3OyJAWBMq_CIJ3oDc7NaJWWCWySWJ5D8cEvyXHlVIhgTBmobcjZlTMmd7eAkho_TDWke07Zh424Y_KvFWRrKqZTnmIp_JiqRs3_n9fu9bN3_wU3NFDJn8ipYxLXHSO73i1uTfU8gA590GG8uK7sSYgART3bx31wjbbX6zHU5Um-czJF7WQ9AMVTjJWwtFewukO5yi6GfA1CIQly3hwsubP-VnvMBR-_yX3E1PFm3e1i7RFALPTR3fxG4XASPgfVCP7vGQum_OK5Sjic3tIOjxTNfa8d55fjWHw",
-        "e" => "AQAB",
-        "d" => "EHsQjpEYFncSd6fMCny0Efjr96rikV4Q8IoDpr8oRbvOioWBru_IT0LdBkvm-JRYAMe6703YqX3h7QExR7Ik0cLVEDchq8OnysYORQZ5x__ibnobVgfJmWgOC7iVVZ5pmlatzFPrbDV4IcK3fsCNPm-AS5r-Ir_nrXsjR4Q6IBkYcx-jCK4yvwyZ2Eb6F38P3MuudufVbN1MkGXPnYE06gwkX272xpLZ-COMdZy_g8MiqnM79xrzajXI8Ner_uqhG8Z2Q4INw_SHFBE_PgvbLG43f6zo5fQelk1LI16rbOdTMvs45ZX1ntTvI1r5Q-m2UAwQSdqRAqea4H9Y7nFV2Q",
-        "p" => "9uAlgTB82FT4A4FVNFEidBa-pN-0wrNdItLrS3JXJPSJ5NilszeYEkpksgxpQREqN1CYj_uQcx5kR8zGXObYo2hlJPx2jC0RxlbV-VlyJ6rjmwlHyhDuibsKfSQ-zwaUy-oMZ0sxabiaYWHZQ4F-_iRoVhRuG8769i0mKN8mT3U",
-        "q" => "6DlhFAZwj1rxITcCcmL3wLDf3nUlIfGwmmzrncHZZNlmxNEvbS6pA9j8FMTqFxcb1uaB2ZhRucseMj_b514zNVnN2as1E7ttn0RGQcWrHA9nVg1Bj9g7_G9SiTtrBtCPLWXKulnAcBRYHr8WgFbmmXtLeESVZ9ZXHZoFMDwnEMM",
-        "dp" => "YgcY_VZqjGAY5xNo6NA6tQv_AWrO1Ozx040a3yd00PjE9HjOOv6dRM4Dc-uXs72EHNjE649BiWSM_zGhpmwHo8MlPm19CSYwQ6hhaJSKzpN9sycZOXRFs6zwekZ1JjF_zgSOjkl-QnOJ4Zc_9R0rdvCv-VY9bo9eeXfuChapmK0",
-        "dq" => "p-aUof3l9EA0h2dWhY24w8Eem6DnMBunLIAD-xPlMl1dSIBWYgKSgQ2pdPrKpdc3cbFHwSO4MzUAqCQzwp0BOVms0-xNe-7P249pnLRmeutIM5dyB6a3-FQkwMQNJeg1HQW0BfhOgrqy28gdZL1wDRhwAIzV2TXH1sc9aRqUxDE",
-        "qi" => "TGfT7FbCMVT6NmKtdQX1yjeuPwtnRCINZI6P1SVwOqR8ZEFfPucsM1mRf2soxUGX6rm3dncMPHDvxcFZ8PDOF8d0UfgDr7xpuZbvvzmIeUxE3kW1XnN_exCkqF_qBkbxobf5x06cDP5ggmbUirT1_6cKUWjFppzvS8yORDZ4RL4"
+    'jwk' => [
+        'kty' => 'RSA',
+        'alg' => 'PS512',
+        'use' => 'sig',
+        'kid' => 'e47836586219c849',
+        'n' => '3_J3g6ujnoCbWQcLG8zBWX2igY7ZG0NfoJ1WFNmSYtZY-lK1PDdf3OyJAWBMq_CIJ3oDc7NaJWWCWySWJ5D8cEvyXHlVIhgTBmobcjZlTMmd7eAkho_TDWke07Zh424Y_KvFWRrKqZTnmIp_JiqRs3_n9fu9bN3_wU3NFDJn8ipYxLXHSO73i1uTfU8gA590GG8uK7sSYgART3bx31wjbbX6zHU5Um-czJF7WQ9AMVTjJWwtFewukO5yi6GfA1CIQly3hwsubP-VnvMBR-_yX3E1PFm3e1i7RFALPTR3fxG4XASPgfVCP7vGQum_OK5Sjic3tIOjxTNfa8d55fjWHw',
+        'e' => 'AQAB',
+        'd' => 'EHsQjpEYFncSd6fMCny0Efjr96rikV4Q8IoDpr8oRbvOioWBru_IT0LdBkvm-JRYAMe6703YqX3h7QExR7Ik0cLVEDchq8OnysYORQZ5x__ibnobVgfJmWgOC7iVVZ5pmlatzFPrbDV4IcK3fsCNPm-AS5r-Ir_nrXsjR4Q6IBkYcx-jCK4yvwyZ2Eb6F38P3MuudufVbN1MkGXPnYE06gwkX272xpLZ-COMdZy_g8MiqnM79xrzajXI8Ner_uqhG8Z2Q4INw_SHFBE_PgvbLG43f6zo5fQelk1LI16rbOdTMvs45ZX1ntTvI1r5Q-m2UAwQSdqRAqea4H9Y7nFV2Q',
+        'p' => '9uAlgTB82FT4A4FVNFEidBa-pN-0wrNdItLrS3JXJPSJ5NilszeYEkpksgxpQREqN1CYj_uQcx5kR8zGXObYo2hlJPx2jC0RxlbV-VlyJ6rjmwlHyhDuibsKfSQ-zwaUy-oMZ0sxabiaYWHZQ4F-_iRoVhRuG8769i0mKN8mT3U',
+        'q' => '6DlhFAZwj1rxITcCcmL3wLDf3nUlIfGwmmzrncHZZNlmxNEvbS6pA9j8FMTqFxcb1uaB2ZhRucseMj_b514zNVnN2as1E7ttn0RGQcWrHA9nVg1Bj9g7_G9SiTtrBtCPLWXKulnAcBRYHr8WgFbmmXtLeESVZ9ZXHZoFMDwnEMM',
+        'dp' => 'YgcY_VZqjGAY5xNo6NA6tQv_AWrO1Ozx040a3yd00PjE9HjOOv6dRM4Dc-uXs72EHNjE649BiWSM_zGhpmwHo8MlPm19CSYwQ6hhaJSKzpN9sycZOXRFs6zwekZ1JjF_zgSOjkl-QnOJ4Zc_9R0rdvCv-VY9bo9eeXfuChapmK0',
+        'dq' => 'p-aUof3l9EA0h2dWhY24w8Eem6DnMBunLIAD-xPlMl1dSIBWYgKSgQ2pdPrKpdc3cbFHwSO4MzUAqCQzwp0BOVms0-xNe-7P249pnLRmeutIM5dyB6a3-FQkwMQNJeg1HQW0BfhOgrqy28gdZL1wDRhwAIzV2TXH1sc9aRqUxDE',
+        'qi' => 'TGfT7FbCMVT6NmKtdQX1yjeuPwtnRCINZI6P1SVwOqR8ZEFfPucsM1mRf2soxUGX6rm3dncMPHDvxcFZ8PDOF8d0UfgDr7xpuZbvvzmIeUxE3kW1XnN_exCkqF_qBkbxobf5x06cDP5ggmbUirT1_6cKUWjFppzvS8yORDZ4RL4',
     ],
 
 ];
