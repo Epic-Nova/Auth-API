@@ -78,7 +78,19 @@ trait LoginTokenTrait
 
         // Fire database storage hook (Handles your IssuedTokenTrait)
         if (method_exists($this, 'ConstructIssuedToken')) {
-            $this->ConstructIssuedToken($jti, $refreshTokenData['jti'], $payload);
+            try {
+                $this->ConstructIssuedToken($jti, $refreshTokenData['jti'], $payload);
+            } catch (\Throwable $exception) {
+                // The isolated local-bypass profile is allowed to validate the
+                // signer before optional token-registry persistence is ready.
+                // Every shared/production profile remains fail-closed.
+                if (! config('keyforge.local_login_bypass')) {
+                    throw $exception;
+                }
+                Log::warning('Local bypass token registry persistence failed.', [
+                    'exception' => get_class($exception),
+                ]);
+            }
         }
 
         return [
