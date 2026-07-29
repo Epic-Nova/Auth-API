@@ -489,7 +489,11 @@ class OAuthController extends Controller
         $configuredKey = (string) config('keyforge.oauth_provisioning_key', '');
         $providedKey = (string) $request->header('X-KeyForge-Bootstrap', '');
 
-        if (strlen($configuredKey) < (int) config('keyforge.oauth_provisioning_key_minimum_length', 32) ||
+        // The short key is permitted solely by the explicit isolated local
+        // bypass profile. Shared and production deployments retain the 32-char
+        // minimum and never enable this flag.
+        $minimumLength = config('keyforge.local_login_bypass') ? 1 : (int) config('keyforge.oauth_provisioning_key_minimum_length', 32);
+        if (strlen($configuredKey) < $minimumLength ||
             $providedKey === '') {
             return false;
         }
