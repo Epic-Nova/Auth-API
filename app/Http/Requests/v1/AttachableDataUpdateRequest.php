@@ -16,7 +16,7 @@ class AttachableDataUpdateRequest extends FormRequest
     {
         return [
             'AttachableForType' => ['sometimes', 'array', 'min:1'],
-            'AttachableForType.*' => ['string', Rule::in(['Authenticatable', 'Account', 'Profile'])],
+            'AttachableForType.*' => ['string', Rule::in(['Authenticatable', 'Account', 'Profile', 'AuthenticationProvider'])],
             'AuthenticationType' => ['sometimes', Rule::in(['NoAuthenticationNeeded', 'NeedsAuthentication', 'NeedsApproval', 'NeedsApprovalAndAuthentication'])],
             'MultiFactorAuthenticationType' => ['sometimes', Rule::in(['NoMultiFactorAuthenticationNeeded', 'UseMultiFactorIfAvailable', 'ForceMultiFactor'])],
             'AuthenticationAndOrApprovalOn' => ['nullable', 'array'],
