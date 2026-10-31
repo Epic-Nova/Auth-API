@@ -17,7 +17,7 @@ class AttachableDataStoreRequest extends FormRequest
         return [
             'AttachableDataName' => ['required', 'string', 'max:64'],
             'AttachableForType' => ['required', 'array', 'min:1'],
-            'AttachableForType.*' => ['string', Rule::in(['Authenticatable', 'Account', 'Profile'])],
+            'AttachableForType.*' => ['string', Rule::in(['Authenticatable', 'Account', 'Profile', 'AuthenticationProvider'])],
             'AuthenticationType' => ['required', Rule::in(['NoAuthenticationNeeded', 'NeedsAuthentication', 'NeedsApproval', 'NeedsApprovalAndAuthentication'])],
             'MultiFactorAuthenticationType' => ['required', Rule::in(['NoMultiFactorAuthenticationNeeded', 'UseMultiFactorIfAvailable', 'ForceMultiFactor'])],
             'AuthenticationAndOrApprovalOn' => ['nullable', 'array'],
